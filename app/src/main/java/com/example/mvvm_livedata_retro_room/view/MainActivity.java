@@ -12,6 +12,7 @@ import android.util.Log;
 
 import com.example.mvvm_livedata_retro_room.R;
 import com.example.mvvm_livedata_retro_room.service.model.LocationDto;
+import com.example.mvvm_livedata_retro_room.service.repository.Repository;
 import com.example.mvvm_livedata_retro_room.service.repository.room_db.InsertAsyncTask;
 import com.example.mvvm_livedata_retro_room.service.repository.room_db.LocationDao;
 import com.example.mvvm_livedata_retro_room.service.repository.room_db.LocationDatabase;
@@ -19,6 +20,7 @@ import com.example.mvvm_livedata_retro_room.view.adapter.CustomAdapter;
 import com.example.mvvm_livedata_retro_room.viewmodel.Recycle_model;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -43,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
 
         /*Intializing view model*/
         model = ViewModelProviders.of(this).get(Recycle_model.class);
-        model.init();
+
 
         /*Intializing live data observer*/
         Observer<ArrayList<LocationDto>> listObserver = new Observer<ArrayList<LocationDto>>() {
@@ -53,11 +55,8 @@ public class MainActivity extends AppCompatActivity {
                 Log.e(TAG, "Observer called");
                 if (list == null || list.size() == 0)
                     return;
-                locationArrayList.addAll(list);
 
-                /*Inserting into database*/
-                LocationDao locationDao = locationDb.locationDao();
-                new InsertAsyncTask(locationDao).execute(locationArrayList);
+                locationArrayList.addAll(list);
 
                 /*Checking is adapter is null or intialized*/
                 if (adapter != null) {
@@ -71,9 +70,37 @@ public class MainActivity extends AppCompatActivity {
 
             }
         };
+        /*Intializing live data observer*/
+        Observer<List<LocationDto>> dbObserver = new Observer<List<LocationDto>>() {
+            @Override
+            public void onChanged(@Nullable final List<LocationDto> list) {
+                // Update the UI, in this case, a TextView.
+                Log.e(TAG, "dbObserver called");
+                if (list == null || list.size() == 0)
+                    return;
+                Log.e(TAG, "onChanged: " + list.size());
+                locationArrayList.clear();
 
+                locationArrayList.addAll(list);
+                /*Checking is adapter is null or intialized*/
+                if (adapter != null) {
+                    /*Refresing the recyclerview*/
+                    adapter.notifyDataSetChanged();
+                } else {
+                    /*Intializing the adapter and setting to recyclerview*/
+                    adapter = new CustomAdapter(MainActivity.this, locationArrayList);
+                    recyclerview.setAdapter(adapter);
+                }
+            }
+        };
         /*Attaching observer to live data*/
-        model.getLocationList().observe(this, listObserver);
+//        model.getLocationList().observe(this, listObserver);
+
+
+        Repository.getInstance().getLocationListFromServer(LocationDatabase.getDatabase(this).locationDao());
+        model.getDbData().observe(this, dbObserver);
+//        model.getSeverData();
+
 
     }
 }
