@@ -101,6 +101,13 @@ public class MainActivity extends AppCompatActivity {
         model.getDbData().observe(this, dbObserver);
 //        model.getSeverData();
 
+        Observer<List<LocationDto>> testObserver = new Observer<List<LocationDto>>() {
+            @Override
+            public void onChanged(@Nullable final List<LocationDto> list) {
+
+            }
+        };
+        model.getLocationList().observe(this, testObserver);
 
     }
 }
