@@ -23,8 +23,30 @@ public class Repository {
     private final APIInterface apiInterface;
     static Repository repository;
 
+   private MutableLiveData<List<LocationDto>> mutableLiveData =  new MutableLiveData<List<LocationDto>>();
     public Repository() {
         apiInterface = RetroFit_Service.getClient().create(APIInterface.class);
+    }
+
+    public LiveData<List<LocationDto>> getLocationList(final LocationDao locationDao) {
+        Call<LocationList> call = apiInterface.doGetLocationList();
+        call.enqueue(new Callback<LocationList>() {
+            @Override
+            public void onResponse(Call<LocationList> call, final Response<LocationList> response) {
+                Log.e("Code", response.code() + "");
+                if (response.code() == 200) {
+                    LocationList location = response.body();
+                    mutableLiveData.setValue(location.getLocation());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<LocationList> call, Throwable t) {
+                call.cancel();
+            }
+        });
+
+        return mutableLiveData;
     }
 
     public void getLocationListFromServer(final LocationDao locationDao) {
