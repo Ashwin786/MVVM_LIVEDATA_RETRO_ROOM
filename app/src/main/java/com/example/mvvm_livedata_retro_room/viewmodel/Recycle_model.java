@@ -35,9 +35,9 @@ public class Recycle_model extends AndroidViewModel {
     }
 
     public LiveData<List<LocationDto>> getLocationList() {
-        if (locationList == null)
-            locationList = new MutableLiveData<List<LocationDto>>();
-        return locationList;
+//        if (locationList == null)
+//            locationList = new MutableLiveData<List<LocationDto>>();
+        return Repository.getInstance().getLocationList(locationDao);
     }
 
     public void getSeverData() {
